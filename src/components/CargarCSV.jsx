@@ -4,9 +4,19 @@ import { toast } from 'react-toastify';
 
 const CargarCSV = () => {
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      if (selectedFile.size > 10000 * 1024 * 1024) { 
+        toast.error('El archivo no puede superar los 10Gb');
+        setFile(null);
+        e.target.value = ''; 
+      } else {
+        setFile(selectedFile);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -15,23 +25,38 @@ const CargarCSV = () => {
       toast.error('Selecciona un archivo CSV');
       return;
     }
+
     const formData = new FormData();
     formData.append('file', file);
+
     try {
+      setLoading(true);
       const data = await cargarCSV(formData);
       toast.success(data.message);
-      if (data.alertas.length > 0) {
+
+      if (data.alertas?.length > 0) {
         data.alertas.forEach(alerta => toast.warn(alerta));
       }
     } catch (error) {
-      toast.error('Error al cargar CSV');
+      console.error('Error al subir el CSV:', error);
+      
+    } finally {
+      setLoading(false);
+      setFile(null);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <input type="file" accept=".csv" onChange={handleFileChange} />
-      <button type="submit">Subir CSV</button>
+      <input
+        type="file"
+        accept=".csv"
+        onChange={handleFileChange}
+        disabled={loading}
+      />
+      <button type="submit" disabled={!file || loading}>
+        {loading ? 'Subiendo...' : 'Subir CSV'}
+      </button>
     </form>
   );
 };
