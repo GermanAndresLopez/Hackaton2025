@@ -2,6 +2,7 @@ import supabase from '../models/supabaseClient.js';
 import fs from 'fs/promises';
 import { parse } from 'csv-parse/sync';
 
+// Agregar registro individual desde el formulario
 export const agregarRegistro = async (req, res) => {
   try {
     const {
